@@ -1,0 +1,8 @@
+# Ignore artifacts:
+build
+coverage
+
+cdmd_dist
+node_modules
+
+pnpm-lock.yaml
