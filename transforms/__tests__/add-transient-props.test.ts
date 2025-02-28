@@ -1,9 +1,9 @@
-import { describe, it } from "vitest"
-import jscodeshift, { type API } from "jscodeshift"
-import transform from "../src/index.js"
+import { describe, expect, it } from "vitest"
 import assert from "node:assert"
 import { readFile } from "node:fs/promises"
+import jscodeshift, { API } from "jscodeshift"
 import { join } from "node:path"
+import transform from "../add-transient-props.js"
 
 const buildApi = (parser: string | undefined): API => ({
   j: parser ? jscodeshift.withParser(parser) : jscodeshift,
@@ -16,26 +16,28 @@ const buildApi = (parser: string | undefined): API => ({
   },
 })
 
-describe("./", () => {
-  it("test #1", async () => {
+describe("add transient props TEST", () => {
+  it("test", async () => {
     const INPUT = await readFile(
-      join(__dirname, "..", "__testfixtures__/fixture1.input.ts"),
+      join(__dirname, "..", "__testfixtures__/add-transient-props.input.tsx"),
       "utf-8"
     )
     const OUTPUT = await readFile(
-      join(__dirname, "..", "__testfixtures__/fixture1.output.ts"),
+      join(__dirname, "..", "__testfixtures__/add-transient-props.output.tsx"),
       "utf-8"
     )
 
     const actualOutput = transform(
       {
-        path: "index.js",
+        path: "add-transient-props.js",
         source: INPUT,
       },
-      buildApi("tsx"),
-      {}
+      buildApi("tsx")
     )
 
-    assert.deepEqual(actualOutput?.replace(/W/gm, ""), OUTPUT.replace(/W/gm, ""))
+    // console.log("Transformed code:", actualOutput)
+
+    expect(actualOutput).not.toBeUndefined()
+    expect(actualOutput?.trim()).toBe(OUTPUT.trim())
   })
 })
