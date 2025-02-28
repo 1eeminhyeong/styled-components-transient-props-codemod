@@ -7,5 +7,5 @@ const Button = styled.button<{ isPrimary: boolean; color: string }>`
 `;
 
 export default function App() {
-  return <Button color="red" isPrimary={true} />;
+  return <Button color="red" isPrimary={true} onClick={() => console.log("Hello world!")} />;
 }

@@ -1,6 +1,6 @@
-import { configDefaults, defineConfig } from "vitest/config"
+import { configDefaults, defineConfig } from "vitest/config";
 
-import packageJson from "./package.json"
+import packageJson from "./package.json";
 
 export default defineConfig({
   test: {
@@ -8,4 +8,4 @@ export default defineConfig({
     environment: "jsdom",
     include: [...configDefaults.include, "**/test/*.ts"],
   },
-})
+});

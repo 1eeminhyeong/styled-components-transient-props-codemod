@@ -1,21 +1,84 @@
-import { API, FileInfo, Options } from "jscodeshift"
+import { API, FileInfo, Options, TSTypeLiteral, TSTypeParameterInstantiation } from "jscodeshift";
 
 export default function transform(file: FileInfo, api: API, options?: Options) {
-  const j = api.jscodeshift
-  const root = j(file.source)
+  const j = api.jscodeshift;
+  const root = j(file.source);
+
+  root.find(j.VariableDeclarator).forEach((path) => {
+    let isDirty = false;
+
+    if (path.node.init?.type === "TaggedTemplateExpression") {
+      if (
+        path.node.init.tag.type === "MemberExpression" &&
+        "typeParameters" in path.node.init &&
+        path.node.init.tag.object.type === "Identifier" &&
+        // only styled-components eg. const Button = styled.button`...`
+        path.node.init.tag.object.name === "styled"
+      ) {
+        // edit eg. styled.button<{ isPrimary: boolean; color: string }>...  ===> styled.button<{ $isPrimary: boolean; $color: string }>...
+        if (
+          (path.node.init.typeParameters as TSTypeParameterInstantiation).type ===
+          "TSTypeParameterInstantiation"
+        ) {
+          const typeParameters = path.node.init.typeParameters as TSTypeParameterInstantiation;
+          (typeParameters.params[0] as TSTypeLiteral).members.forEach((member) => {
+            if (member.type === "TSPropertySignature" && member.key.type === "Identifier") {
+              const propNameValue = member.key.name;
+
+              if (!propNameValue.startsWith("$")) {
+                member.key.name = `$${propNameValue}`;
+                isDirty = true;
+              }
+            }
+          });
+        }
+
+        if (
+          isDirty &&
+          path.node.init.quasi.type === "TemplateLiteral" &&
+          path.node.init.quasi.expressions.length > 0
+        ) {
+          path.node.init.quasi.expressions.forEach((expression) => {
+            if (expression.type === "ArrowFunctionExpression") {
+              if (
+                expression.body.type === "MemberExpression" &&
+                expression.body.property.type === "Identifier"
+              ) {
+                const propNameValue = expression.body.property.name;
+
+                if (!propNameValue.startsWith("$")) {
+                  expression.body.property.name = `$${propNameValue}`;
+                }
+              } else if (
+                expression.body.type === "ConditionalExpression" &&
+                expression.body.test.type === "MemberExpression" &&
+                expression.body.test.property.type === "Identifier"
+              ) {
+                const propNameValue = expression.body.test.property.name;
+
+                if (!propNameValue.startsWith("$")) {
+                  expression.body.test.property.name = `$${propNameValue}`;
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+  });
 
   // JSX props add prefix ($)
   root.find(j.JSXAttribute).forEach((path) => {
-    const propsName = path.node.name
+    const propsName = path.node.name;
 
     if (propsName.type === "JSXIdentifier") {
-      const propNameValue = propsName.name
+      const propNameValue = propsName.name;
 
       if (!propNameValue.startsWith("$")) {
-        propsName.name = `$${propNameValue}`
+        propsName.name = `$${propNameValue}`;
       }
     }
-  })
+  });
 
-  return root.toSource()
+  return root.toSource();
 }

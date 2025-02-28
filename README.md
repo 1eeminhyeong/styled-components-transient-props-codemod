@@ -11,11 +11,11 @@ npx codemod
 ### Before
 
 ```ts
-const toReplace = "hello"
+const toReplace = "hello";
 ```
 
 ### After
 
 ```ts
-const replacement = "hello"
+const replacement = "hello";
 ```
