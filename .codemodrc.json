@@ -1,9 +1,13 @@
 {
   "$schema": "https://codemod-utils.s3.us-west-1.amazonaws.com/configuration_schema.json",
-  "name": "",
+  "name": "styled-components-transient-props-codemod",
   "version": "1.0.0",
   "engine": "jscodeshift",
   "private": false,
   "arguments": [],
-  "meta": {}
+  "meta": {
+    "tags": ["react", "styled-components"],
+    "git": "https://github.com/1eeminhyeong/styled-components-transient-props-codemod.git"
+  },
+  "entry": "./transforms/add-transient-props.ts"
 }
