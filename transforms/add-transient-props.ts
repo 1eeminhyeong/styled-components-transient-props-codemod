@@ -1,4 +1,11 @@
-import { API, FileInfo, Options, TSTypeLiteral, TSTypeParameterInstantiation } from "jscodeshift";
+import type {
+  API,
+  FileInfo,
+  Options,
+  TSTypeLiteral,
+  TSTypeParameterInstantiation,
+} from "jscodeshift";
+import { defaultJSXAttributes } from "./constants.js";
 
 export default function transform(file: FileInfo, api: API, options?: Options) {
   const j = api.jscodeshift;
@@ -74,7 +81,7 @@ export default function transform(file: FileInfo, api: API, options?: Options) {
     if (propsName.type === "JSXIdentifier") {
       const propNameValue = propsName.name;
 
-      if (!propNameValue.startsWith("$")) {
+      if (!defaultJSXAttributes.has(propNameValue) && !propNameValue.startsWith("$")) {
         propsName.name = `$${propNameValue}`;
       }
     }
