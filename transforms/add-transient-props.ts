@@ -1,10 +1,4 @@
-import type {
-  API,
-  FileInfo,
-  Options,
-  TSTypeLiteral,
-  TSTypeParameterInstantiation,
-} from "jscodeshift";
+import type { API, FileInfo, Options, TSTypeLiteral, TSTypeParameterInstantiation } from "jscodeshift";
 import { defaultJSXAttributes } from "./constants.js";
 
 export default function transform(file: FileInfo, api: API, options?: Options) {
@@ -23,10 +17,7 @@ export default function transform(file: FileInfo, api: API, options?: Options) {
         path.node.init.tag.object.name === "styled"
       ) {
         // edit eg. styled.button<{ isPrimary: boolean; color: string }>...  ===> styled.button<{ $isPrimary: boolean; $color: string }>...
-        if (
-          (path.node.init.typeParameters as TSTypeParameterInstantiation).type ===
-          "TSTypeParameterInstantiation"
-        ) {
+        if ((path.node.init.typeParameters as TSTypeParameterInstantiation).type === "TSTypeParameterInstantiation") {
           const typeParameters = path.node.init.typeParameters as TSTypeParameterInstantiation;
           (typeParameters.params[0] as TSTypeLiteral).members.forEach((member) => {
             if (member.type === "TSPropertySignature" && member.key.type === "Identifier") {
@@ -40,17 +31,10 @@ export default function transform(file: FileInfo, api: API, options?: Options) {
           });
         }
 
-        if (
-          isDirty &&
-          path.node.init.quasi.type === "TemplateLiteral" &&
-          path.node.init.quasi.expressions.length > 0
-        ) {
+        if (isDirty && path.node.init.quasi.type === "TemplateLiteral" && path.node.init.quasi.expressions.length > 0) {
           path.node.init.quasi.expressions.forEach((expression) => {
             if (expression.type === "ArrowFunctionExpression") {
-              if (
-                expression.body.type === "MemberExpression" &&
-                expression.body.property.type === "Identifier"
-              ) {
+              if (expression.body.type === "MemberExpression" && expression.body.property.type === "Identifier") {
                 const propNameValue = expression.body.property.name;
 
                 if (!propNameValue.startsWith("$")) {
@@ -75,15 +59,25 @@ export default function transform(file: FileInfo, api: API, options?: Options) {
   });
 
   // JSX props add prefix ($)
-  root.find(j.JSXAttribute).forEach((path) => {
-    const propsName = path.node.name;
+  root.find(j.JSXOpeningElement).forEach((path) => {
+    // if (path.node.name.type === "JSXIdentifier") {
+    //   console.log(path.node.name.name.startsWith("Styled"));
+    // }
 
-    if (propsName.type === "JSXIdentifier") {
-      const propNameValue = propsName.name;
+    if (path.node.name.type === "JSXIdentifier" && path.node.name.name.startsWith("Styled") && path.node.attributes) {
+      path.node.attributes?.forEach((attr) => {
+        if (attr.type === "JSXAttribute") {
+          const propsName = attr.name;
 
-      if (!defaultJSXAttributes.has(propNameValue) && !propNameValue.startsWith("$")) {
-        propsName.name = `$${propNameValue}`;
-      }
+          if (propsName.type === "JSXIdentifier") {
+            const propNameValue = propsName.name;
+
+            if (!defaultJSXAttributes.has(propNameValue) && !propNameValue.startsWith("$")) {
+              propsName.name = `$${propNameValue}`;
+            }
+          }
+        }
+      });
     }
   });
 
