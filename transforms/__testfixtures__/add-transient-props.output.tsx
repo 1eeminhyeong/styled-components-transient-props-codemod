@@ -1,9 +1,23 @@
 import React, { ReactNode } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
-const StyledButton = styled.button<{ $isPrimary: boolean; $textColor: string }>`
+const StyledButton = styled.button<{
+  $isPrimary: boolean;
+  $textColor: string;
+  $bgNone: boolean;
+  $size: "s" | "m";
+}>`
   color: ${(props) => props.$textColor};
   background: ${(props) => (props.$isPrimary ? "blue" : "gray")};
+  width: ${({ $size }) => ($size === "s" ? "100px" : "200px")};
+
+  ${(props) =>
+    props.$bgNone &&
+    css`
+      padding: 0;
+      background: none;
+      border: none;
+    `}
 `;
 
 interface MyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,7 +28,7 @@ interface MyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 function MyButton({ children, isPrimary = false, textColor = "black" }: MyButtonProps) {
   return (
-    <StyledButton $isPrimary={isPrimary} $textColor={textColor}>
+    <StyledButton $isPrimary={isPrimary} $textColor={textColor} $bgNone $size="s">
       {children}
     </StyledButton>
   );

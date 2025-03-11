@@ -33,23 +33,54 @@ export default function transform(file: FileInfo, api: API, options?: Options) {
 
         if (isDirty && path.node.init.quasi.type === "TemplateLiteral" && path.node.init.quasi.expressions.length > 0) {
           path.node.init.quasi.expressions.forEach((expression) => {
-            if (expression.type === "ArrowFunctionExpression") {
-              if (expression.body.type === "MemberExpression" && expression.body.property.type === "Identifier") {
-                const propNameValue = expression.body.property.name;
+            if (expression.type !== "ArrowFunctionExpression") {
+              return;
+            }
 
-                if (!propNameValue.startsWith("$")) {
-                  expression.body.property.name = `$${propNameValue}`;
-                }
-              } else if (
-                expression.body.type === "ConditionalExpression" &&
-                expression.body.test.type === "MemberExpression" &&
-                expression.body.test.property.type === "Identifier"
-              ) {
+            const expressionParam = expression.params[0];
+
+            if (
+              expressionParam?.type === "ObjectPattern" &&
+              expressionParam.properties[0]?.type === "ObjectProperty" &&
+              expressionParam.properties[0].value &&
+              expressionParam.properties[0].value.type === "Identifier"
+            ) {
+              const objParam = expressionParam.properties[0].value.name;
+
+              if (!objParam.startsWith("$")) {
+                expressionParam.properties[0].value.name = `$${objParam}`;
+              }
+            }
+
+            if (expression.body.type === "MemberExpression" && expression.body.property.type === "Identifier") {
+              const propNameValue = expression.body.property.name;
+
+              if (!propNameValue.startsWith("$")) {
+                expression.body.property.name = `$${propNameValue}`;
+              }
+            } else if (expression.body.type === "ConditionalExpression") {
+              if (expression.body.test.type === "MemberExpression" && expression.body.test.property.type === "Identifier") {
                 const propNameValue = expression.body.test.property.name;
 
                 if (!propNameValue.startsWith("$")) {
                   expression.body.test.property.name = `$${propNameValue}`;
                 }
+              } else if (expression.body.test.type === "BinaryExpression" && expression.body.test.left.type === "Identifier") {
+                const conditionValue = expression.body.test.left.name;
+
+                if (!conditionValue.startsWith("$")) {
+                  expression.body.test.left.name = `$${conditionValue}`;
+                }
+              }
+            } else if (
+              expression.body.type === "LogicalExpression" &&
+              expression.body.left.type === "MemberExpression" &&
+              expression.body.left.property.type === "Identifier"
+            ) {
+              const propNameValue = expression.body.left.property.name;
+
+              if (!propNameValue.startsWith("$")) {
+                expression.body.left.property.name = `$${propNameValue}`;
               }
             }
           });
@@ -60,10 +91,6 @@ export default function transform(file: FileInfo, api: API, options?: Options) {
 
   // JSX props add prefix ($)
   root.find(j.JSXOpeningElement).forEach((path) => {
-    // if (path.node.name.type === "JSXIdentifier") {
-    //   console.log(path.node.name.name.startsWith("Styled"));
-    // }
-
     if (path.node.name.type === "JSXIdentifier" && path.node.name.name.startsWith("Styled") && path.node.attributes) {
       path.node.attributes?.forEach((attr) => {
         if (attr.type === "JSXAttribute") {
