@@ -6,3 +6,5 @@ cdmd_dist
 node_modules
 
 pnpm-lock.yaml
+
+.eslintcache

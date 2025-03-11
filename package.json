@@ -8,8 +8,10 @@
     "@types/react": "^19.0.10",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
+    "husky": "^9.1.7",
     "jscodeshift": "^17.1.2",
     "jsdom": "^26.0.0",
+    "lint-staged": "^15.4.3",
     "prettier": "^3.5.2",
     "react": "^19.0.0",
     "styled-components": "^6.1.15",
@@ -24,12 +26,19 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "lint": "eslint . eslint.config.mjs",
-    "format": "prettier --write . --config ./prettier.config.mjs"
+    "format": "prettier --write . --config ./prettier.config.mjs",
+    "prepare": "husky"
   },
   "files": [
     "README.md",
     ".codemodrc.json",
     "/dist/index.cjs"
   ],
-  "type": "module"
+  "type": "module",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --cache",
+      "prettier --write . prettier.config.mjs"
+    ]
+  }
 }
