@@ -1,7 +1,7 @@
-import type { API, FileInfo, Options, TSTypeLiteral, TSTypeParameterInstantiation } from "jscodeshift";
+import type { API, FileInfo, TSTypeLiteral, TSTypeParameterInstantiation } from "jscodeshift";
 import { defaultJSXAttributes } from "./constants.js";
 
-export default function transform(file: FileInfo, api: API, options?: Options) {
+export default function transform(file: FileInfo, api: API) {
   const j = api.jscodeshift;
   const root = j(file.source);
 
